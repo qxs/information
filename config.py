@@ -33,3 +33,8 @@ class UnittestConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'mysql://root:mysql@127.0.0.1:3306/information_case'
     # 生产环境日志等级
+configs = {
+    'dev':DevlopmentConfig,
+    'pro':ProductionConfig,
+    'unit':UnittestConfig
+}
