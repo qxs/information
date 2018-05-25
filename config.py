@@ -1,4 +1,5 @@
 from redis import StrictRedis
+import logging
 
 
 class Config(object):
@@ -19,7 +20,7 @@ class Config(object):
 
 class DevlopmentConfig(Config):
     """开发环境"""
-    pass
+    LEVEL_LOG = logging.DEBUG
 
 
 class ProductionConfig(Config):
@@ -27,12 +28,15 @@ class ProductionConfig(Config):
     DEBUG = False
     SQLALCHEMY_DATABASE_URI = 'mysql://root:mysql@127.0.0.1:3306/information_pro'
     # 生产环境日志等级
+    LEVEL_LOG = logging.ERROR
 
 class UnittestConfig(Config):
     """测试环境"""
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'mysql://root:mysql@127.0.0.1:3306/information_case'
     # 生产环境日志等级
+    LEVEL_LOG = logging.DEBUG
+
 configs = {
     'dev':DevlopmentConfig,
     'pro':ProductionConfig,
