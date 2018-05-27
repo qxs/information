@@ -14,8 +14,6 @@ Migrate(app, db)
 # 将数据库迁移的脚本添加到manager
 manager.add_command('mysql', MigrateCommand)
 
-from info.modules.index import index_blue
-app.register_blueprint(index_blue )
 
 if __name__ == '__main__':
 

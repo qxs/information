@@ -9,6 +9,11 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 
+
+# 创建SQLAlchemy对象
+db = SQLAlchemy()
+redis_store = None
+
 def setup_log(level):
     """根据创建app时的配置环境，加载日志等级"""
     # 设置日志的记录等级
@@ -21,10 +26,6 @@ def setup_log(level):
     file_log_handler.setFormatter(formatter)
     # 为全局的日志工具对象（flask app使用的）添加日志记录器
     logging.getLogger().addHandler(file_log_handler)
-
-
-# 创建SQLAlchemy对象
-db = SQLAlchemy()
 
 
 def create_app(config_name):
@@ -44,6 +45,7 @@ def create_app(config_name):
     # db = SQLAlchemy(app)
     db.init_app(app)
 
+    global redis_store
     # 创建连接到redis数据库的对象
     redis_store = StrictRedis(host=configs[config_name].REDIS_HOST, port=configs[config_name].REDIS_PORT)
 
@@ -52,5 +54,11 @@ def create_app(config_name):
 
     # 指定session数据存储在后端的位置
     Session(app)
+
+    # 注意点：蓝图再哪里使用，注册就在哪里导入，避免出现蓝图导入过早造成变量不存在的情况
+    from info.modules.index import index_blue
+    app.register_blueprint(index_blue )
+
+
 
     return app
