@@ -58,6 +58,8 @@ def create_app(config_name):
     # 注意点：蓝图再哪里使用，注册就在哪里导入，避免出现蓝图导入过早造成变量不存在的情况
     from info.modules.index import index_blue
     app.register_blueprint(index_blue )
+    from info.modules.passport import passport_blue
+    app.register_blueprint(passport_blue)
 
 
 
