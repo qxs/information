@@ -4,6 +4,7 @@ from flask_migrate import Migrate, MigrateCommand
 from info import create_app, db
 
 
+
 # 创建app
 app = create_app('dev')
 
@@ -14,20 +15,8 @@ Migrate(app, db)
 # 将数据库迁移的脚本添加到manager
 manager.add_command('mysql', MigrateCommand)
 
-
-@app.route('/')
-def index():
-
-    # 测试redis数据库
-    # redis_store.set('name', 'zxj')
-
-    # 测试session
-    # from flask import session
-    # 会将{'age':'2'}写入到cookie
-    # session['age'] = '2'
-
-    return 'index'
-
+from info.modules.index import index_blue
+app.register_blueprint(index_blue )
 
 if __name__ == '__main__':
 
