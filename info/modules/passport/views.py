@@ -51,7 +51,6 @@ def resgister():
     return jsonify(errno=response_code.RET.OK, errmsg='注册成功')
 
 
-
 @passport_blue.route('/sms_code',methods=['POST'])
 def sms_code():
     #"{'mobile':'13829494822','image_code':'asdf','image_code_id':uuid}"
