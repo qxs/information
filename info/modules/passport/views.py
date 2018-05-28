@@ -4,6 +4,7 @@ from  info.utils.captcha.captcha import captcha
 from  info import redis_store,constants
 
 
+
 @passport_blue.route('/image_code',methods=['GET'])
 def image_code():
     imageCodeId = request.args.get('imageCodeId')
