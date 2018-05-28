@@ -9,15 +9,15 @@ from info.libs.yuntongxun.sms import CCP
 @passport_blue.route('/sms_code',methods=['POST'])
 def sms_code():
     #"{'mobile':'13829494822','image_code':'asdf','image_code_id':uuid}"
-    json_str = request.data
+    json_str = request.data.decode('utf-8')
     json_dict = json.loads(json_str)
     mobile = json_dict['mobile']
     image_code_client = json_dict['image_code']
     image_code_id = json_dict['image_code_id']
 
-    if not all(mobile,image_code_client,image_code_id):
+    if not all([mobile,image_code_client,image_code_id]):
         return jsonify(errno=response_code.RET.PARAMERR,errmsg='缺少参数')
-    if not re.match(r'$1[345678][0-9]{9}&',mobile):
+    if not re.match(r'^1[345678][0-9]{9}$',mobile):
         return jsonify(errno=response_code.RET.PARAMERR, errmsg='手机格式错误')
     try:
         image_code_server = redis_store.get('imageCoedId:'+image_code_id)
