@@ -1,9 +1,55 @@
-import json,re,random
+import json,re,random,datetime
 from . import passport_blue
-from flask import request,abort,current_app,make_response, jsonify
+from flask import request,abort,current_app,make_response, jsonify,session
 from  info.utils.captcha.captcha import captcha
-from  info import redis_store,constants,response_code
+from  info import redis_store,constants,response_code,db
 from info.libs.yuntongxun.sms import CCP
+from info.models import User
+
+
+@passport_blue.route('/resgister,methods=[POST]')
+def resgister():
+    json_dict = request.json
+    mobile = json_dict['mobile']
+    smscode_client = json_dict['sms_code']
+    password = json_dict['password']
+
+    if not all([mobile, smscode_client, password]):
+        return jsonify(errno=response_code.RET.PARAMERR, errmsg='缺少参数')
+    if not re.match(r'^1[345678][0-9]{9}$', mobile):
+        return jsonify(errno=response_code.RET.PARAMERR, errmsg='手机号码格式错误')
+
+    try:
+        smscode_server = redis_store.get('sms:'+mobile)
+    except Exception as e:
+        return jsonify(errno=response_code.RET.DBERR, errmsg='查询短信验证码失败')
+    if not smscode_server:
+        return jsonify(errno=response_code.RET.NODATA, errmsg='短信验证码不存在')
+
+    if smscode_client != smscode_server:
+        return jsonify(errno=response_code.RET.PARAMERR, errmsg='输入手机验证码有误')
+
+
+    user =User()
+    user.mobile = mobile
+    user.nick_name = mobile
+    #TODO 密码需要加密后再存储
+    user.password_hash = password
+    #记录最后一次登录的时间
+    user.last_login = datetime.datetime.now()
+
+    try:
+        db.session.add(user)
+        db.session.commit()
+    except Exception as e :
+        current_app.logger.error(e)
+        return jsonify(errno=response_code.RET.DBERR, errmsg='保存注册数据失败')
+    session['user_id'] = user.id
+    session['mobile'] = user.mobile
+    session['nick_name'] = user.nick_name
+    #８响应注册结果
+    return jsonify(errno=response_code.RET.OK, errmsg='注册成功')
+
 
 
 @passport_blue.route('/sms_code',methods=['POST'])
