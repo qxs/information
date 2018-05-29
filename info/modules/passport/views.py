@@ -6,6 +6,26 @@ from  info import redis_store,constants,response_code,db
 from info.libs.yuntongxun.sms import CCP
 from info.models import User
 
+
+@passport_blue.route('/logout',methods =['GET'])
+def logout():
+    """退出登录
+    清理ｓｅｓｓｉｏｎ　－－－－session.pop('key')
+    """
+    try:
+        session.pop('user_id')
+        session.pop('mobile')
+        session.pop('nick_name')
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=response_code.RET.DBERR, errmsg='退出登录失败')
+
+    return jsonify(errno=response_code.RET.OK, errmsg='退出登录成功')
+
+
+
+
+
 @passport_blue.route('/login',methods=['POST'])
 def login():
     '''登录
