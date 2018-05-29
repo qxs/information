@@ -7,11 +7,11 @@ from info.libs.yuntongxun.sms import CCP
 from info.models import User
 
 
-@passport_blue.route('/resgister,methods=[POST]')
+@passport_blue.route('/resgister',methods=['POST'])
 def resgister():
     json_dict = request.json
     mobile = json_dict['mobile']
-    smscode_client = json_dict['sms_code']
+    smscode_client = json_dict['smscode']
     password = json_dict['password']
 
     if not all([mobile, smscode_client, password]):
@@ -20,7 +20,7 @@ def resgister():
         return jsonify(errno=response_code.RET.PARAMERR, errmsg='手机号码格式错误')
 
     try:
-        smscode_server = redis_store.get('sms:'+mobile)
+        smscode_server = redis_store.get('SMS:'+mobile)
     except Exception as e:
         return jsonify(errno=response_code.RET.DBERR, errmsg='查询短信验证码失败')
     if not smscode_server:
@@ -33,17 +33,17 @@ def resgister():
     user =User()
     user.mobile = mobile
     user.nick_name = mobile
-    #TODO 密码需要加密后再存储
-    user.password_hash = password
-    #记录最后一次登录的时间
+    # #TODO 密码需要加密后再存储
+    # user.password_hash = password
+    # #记录最后一次登录的时间
     user.last_login = datetime.datetime.now()
 
-    try:
-        db.session.add(user)
-        db.session.commit()
-    except Exception as e :
-        current_app.logger.error(e)
-        return jsonify(errno=response_code.RET.DBERR, errmsg='保存注册数据失败')
+    # try:
+    #     db.session.add(user)
+    #     db.session.commit()
+    # except Exception as e :
+    #     current_app.logger.error(e)
+    #     return jsonify(errno=response_code.RET.DBERR, errmsg='保存注册数据失败')
     session['user_id'] = user.id
     session['mobile'] = user.mobile
     session['nick_name'] = user.nick_name

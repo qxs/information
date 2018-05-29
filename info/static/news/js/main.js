@@ -120,6 +120,8 @@ $(function(){
         }
 
         // 发起登录请求
+
+
     })
 
 
@@ -154,7 +156,27 @@ $(function(){
         }
 
         // 发起注册请求
+         var  params = {
+            'mobile':mobile,
+            'password': password,
+            'smscode':smscode
+        };
+        $.ajax({
+            url:'/passport/resgister',
+            type:'post',
+            data:JSON.stringify(params),
+            contentType:'application/json',
+            success:function (response) {
+                if(response.errno ==0){
+                    //注册成功
+                    location.reload();
+                }else {
+                    alert(response.errmsg);
+                }
 
+            }
+
+        })
     })
 })
 
