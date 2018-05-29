@@ -221,9 +221,24 @@ function sendSMSCode() {
         contentType:'application/json',
         success:function (response) {
             if (response.errno == '0'){
+                //发送成功后，进行倒计时
+                var num = 5;
+                var t =setInterval(function () {
+                    if (num == 1){
+                        clearInterval(t);
+                        generateImageCode();
+                        $('.get_code').html('点击获取验证码');
+                        $('.get_code').attr('onclick','sendSMSCode();');
+                    }else {
+                        $('.get_code').html(num+'秒');
+                    }
+                    num -= 1;
+                },1000);
 
             } else {
                 alert(response.errmsg);
+                generateImageCode()
+                $('.get_code').attr('onclick','sendSMSCode();');
             }
 
         }
