@@ -5,6 +5,7 @@ from info.models import User,News
 from info import constants
 
 
+
 @index_blue.route('/')
 def index():
     '''登录
