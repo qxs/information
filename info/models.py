@@ -101,7 +101,11 @@ class User(BaseModel, db.Model):
     def password(self, value):
         self.password_hash = generate_password_hash(value)
 
-
+    def check_password(self,password):
+        """用于校验密码
+        :param :password :要校验的密码的明文
+        :return :返回校验的结果　Ｔrue/False"""
+        return check_password_hash(self.password_hash,password)
 
 
 class News(BaseModel, db.Model):

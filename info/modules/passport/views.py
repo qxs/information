@@ -6,6 +6,49 @@ from  info import redis_store,constants,response_code,db
 from info.libs.yuntongxun.sms import CCP
 from info.models import User
 
+@passport_blue.route('/login',methods=['POST'])
+def login():
+    '''登录
+    1 获取参数　校验参数
+    ２　查询手机号用户信息　校验用户是否正确　校验密码是否正确  状态保持信息写到ｓｅｓｓｉｏｎ，,完成登录　记录最后一次登录时间
+    ３　响应登录结果
+    '''
+    json_dict = request.json
+    mobile = json_dict.get('mobile')
+    password = json_dict.get('password')
+    if not all([mobile,password]):
+        return jsonify(errno=response_code.RET.PARAMERR, errmsg='缺少参数')
+    if not re.match(r'^1[345678][0-9]{9}$', mobile):
+        return jsonify(errno=response_code.RET.PARAMERR, errmsg='手机号码格式错误')
+
+    try:
+        user = User.query.filter(User.mobile == mobile).first()
+    except Exception as e :
+        current_app.logger.debug(e)
+        return jsonify(errno=response_code.RET.DBERR, errmsg='查询用户信息错误')
+    if not user:
+        return jsonify(errno=response_code.RET.PARAMERR, errmsg='用户名或者密码错误')
+    if not user.check_password(password):
+        return jsonify(errno=response_code.RET.PWDERR, errmsg='用户名或者密码错误')
+    #将状态保持信息写入到ｓｅｓｓｉｏｎ　完成登录
+    session['user_id'] = user.id
+    session['mobile'] = user.mobile
+    session['nick_name'] = user.nick_name
+
+    #记录最后一次登录时间
+    user.last_login = datetime.datetime.now()
+    try:
+        db.session.commit()
+    except Exception as e :
+        current_app.logger.debug(e)
+        db.session.rollback()
+        return jsonify(errno=response_code.RET.DBERR, errmsg='记录最后一次登录时间失效')
+
+    return jsonify(errno=response_code.RET.OK, errmsg='登录成功 ')
+
+
+
+
 
 @passport_blue.route('/resgister',methods=['POST'])
 def resgister():
@@ -79,9 +122,10 @@ def sms_code():
     if image_code_server.lower() != image_code_client.lower():
         return jsonify(error=response_code.RET.PARAMERR, errmsg='输入验证码错误')
     sms_code = '%06d' %random.randint(0,999999)
-    result = CCP().send_template_sms(mobile,[sms_code,5],1)
-    if result != 0:
-        return jsonify(error=response_code.RET.THIRDERR, errmsg='发送验证码错误')
+    current_app.logger.debug(sms_code)
+    # result = CCP().send_template_sms(mobile,[sms_code,5],1)
+    # if result != 0:
+    #     return jsonify(error=response_code.RET.THIRDERR, errmsg='发送验证码错误')
 
     try:
         redis_store.set('SMS:'+mobile,sms_code,constants.SMS_CODE_REDIS_EXPIRES)
@@ -99,10 +143,11 @@ def image_code():
         abort(403)
 
     name,text,image = captcha.generate_captcha()
+    current_app.logger.debug(text)
     try:
         redis_store.set('imageCoedId:'+imageCodeId,text,constants.IMAGE_CODE_REDIS_EXPIRES)
     except Exception as e:
-        current_app.app.logging.error(e)
+        current_app.logging.error(e)
         abort(500)
     response = make_response(image)
     response.headers['Content-Type']='image/jpg'
