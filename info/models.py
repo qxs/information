@@ -92,6 +92,17 @@ class User(BaseModel, db.Model):
         }
         return resp_dict
 
+    #以下代码直接调用该属性的setter方法，加密的过程，封装在setter方法
+    @property
+    def password(self):
+        raise AttributeError('can not read')
+
+    @password.setter
+    def password(self, value):
+        self.password_hash = generate_password_hash(value)
+
+
+
 
 class News(BaseModel, db.Model):
     """新闻"""

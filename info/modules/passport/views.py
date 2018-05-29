@@ -14,6 +14,7 @@ def resgister():
     smscode_client = json_dict['smscode']
     password = json_dict['password']
 
+
     if not all([mobile, smscode_client, password]):
         return jsonify(errno=response_code.RET.PARAMERR, errmsg='缺少参数')
     if not re.match(r'^1[345678][0-9]{9}$', mobile):
@@ -34,16 +35,19 @@ def resgister():
     user.mobile = mobile
     user.nick_name = mobile
     # #TODO 密码需要加密后再存储
-    # user.password_hash = password
+    #方案三：在模型中增加一个属性password，并加载ｓｅｔｔｅｒ和ｇｅｔｔｅｒ方法，调用setter方法直接完成密码的加密和存储
+    # setter方法
+    user.password = password
     # #记录最后一次登录的时间
     user.last_login = datetime.datetime.now()
 
-    # try:
-    #     db.session.add(user)
-    #     db.session.commit()
-    # except Exception as e :
-    #     current_app.logger.error(e)
-    #     return jsonify(errno=response_code.RET.DBERR, errmsg='保存注册数据失败')
+    try:
+        db.session.add(user)
+        db.session.commit()
+    except Exception as e :
+        current_app.logger.error(e)
+        db.session.rollback()
+        return jsonify(errno=response_code.RET.DBERR, errmsg='保存注册数据失败')
     session['user_id'] = user.id
     session['mobile'] = user.mobile
     session['nick_name'] = user.nick_name
