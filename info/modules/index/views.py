@@ -14,9 +14,9 @@ def index_news_list():
     ３　构造响应的新闻列表数据
     """
     #接受参数　（分类ｉｄ　要看第几页面，每页几条数据）
-    cid = request.get('cid',1)
-    page = request.get('page',1)
-    per_page = request.get('per_page',10)
+    cid = request.args.get('cid',1)
+    page = request.args.get('page',1)
+    per_page = request.args.get('per_page',10)
 
     try:
         cid = int(cid)
@@ -35,24 +35,24 @@ def index_news_list():
     # 4 构造响应的新闻列表数据
         #news_list = [News,News,News,News,News,News,News,News,News,News]   其中News是一个对象
         #取出当前页的所有的模型对象
-        news_list = paginate.items
-        #读取分页的总数据，将来在主页的新闻列表上拉刷新时使用
-        totle_page = paginate.pages
-        #读取当前是第几页，将来在主页的新闻列表上拉刷新时使用
-        current_page =  paginate.page
+    news_list = paginate.items
+    #读取分页的总数据，将来在主页的新闻列表上拉刷新时使用
+    totle_page = paginate.pages
+    #读取当前是第几页，将来在主页的新闻列表上拉刷新时使用
+    current_page =  paginate.page
 
-        #！！！！！将模型对象字典列表，让json在序列化时可以认识
-        news_dict_list = []
-        for news in news_list:
-            news_dict_list.append(news.to_basic_dict())
+    #！！！！！将模型对象字典列表，让json在序列化时可以认识
+    news_dict_list = []
+    for news in news_list:
+        news_dict_list.append(news.to_basic_dict())
 
-        data = {
-            'news_dict_list':news_dict_list,
-            'totle_page':totle_page,
-            'current_page':current_page
-        }
+    data = {
+        'news_dict_list':news_dict_list,
+        'totle_page':totle_page,
+        'current_page':current_page
+    }
 
-    return jsonify(errno=response_code.RET.OK, errmsg='OK',data = data)
+    return jsonify(errno=response_code.RET.OK, errmsg='OK',data=data)
 
 
 
