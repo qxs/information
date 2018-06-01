@@ -30,14 +30,14 @@ def index_news_list():
         #最新，时间倒序，每页１０条数据
         paginate = News.query.order_by(News.create_time.desc()).paginate(page,per_page,False)
     else:
-        paginate = News.query.filter(News.category_id==cid).order_by(News.create_time.desc()).painate(page,per_page,False)
+        paginate = News.query.filter(News.category_id==cid).order_by(News.create_time.desc()).paginate(page,per_page,False)
 
     # 4 构造响应的新闻列表数据
         #news_list = [News,News,News,News,News,News,News,News,News,News]   其中News是一个对象
         #取出当前页的所有的模型对象
     news_list = paginate.items
     #读取分页的总数据，将来在主页的新闻列表上拉刷新时使用
-    totle_page = paginate.pages
+    total_page = paginate.pages
     #读取当前是第几页，将来在主页的新闻列表上拉刷新时使用
     current_page =  paginate.page
 
@@ -48,7 +48,7 @@ def index_news_list():
 
     data = {
         'news_dict_list':news_dict_list,
-        'totle_page':totle_page,
+        'total_page':total_page,
         'current_page':current_page
     }
 
@@ -61,6 +61,7 @@ def index():
     '''登录
     １　处理右上角的登录或者注册显示
     2 新闻点击排行展示，在ｎｅｗｓ数据库中查询，根据点击量ｃｌｉｃｋｓ查询 倒序
+    3 首页分类
     '''
 
     user_id = session.get('user_id',None)
@@ -78,9 +79,18 @@ def index():
     except Exception as e:
         current_app.logger.error(e)
 
+    # 3 首页分类
+    # 　ｃａｔｅｇｏｒｉｅｓ报黄警告
+    categories = []
+    try:
+        categories = Category.query.all()
+    except Exception as e:
+        current_app.logger.error(e)
+
     context = {
         'user':user,
-        'news_clicks':news_clicks
+        'news_clicks':news_clicks,
+        'categories':categories
     }
 
     return render_template('news/index.html',context = context)
