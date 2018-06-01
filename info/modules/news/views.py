@@ -1,23 +1,19 @@
 from . import news_blue
 '''新闻详情：收藏,评论，点赞，'''
-from flask import render_template,session,current_app,abort
-from info.models import News,User,constants,Category
-
+from flask import render_template,session,current_app,abort,g
+from info.models import News,User,constants,Category,db
+from info.utils.comment import user_login_data
 
 
 
 @news_blue.route('/detail/<int:news_id>')
+@user_login_data
 def news_detial(news_id):
     '''1查询用户登录信息
     　　２点击排行
-        3新闻查询详情'''
-    user_id = session.get('user_id', None)
-    user = None
-    if user_id:
-        try:
-            user = User.query.get(user_id)
-        except Exception as e:
-            current_app.logger.error(e)
+        3新闻查询详情
+        4累计点击量'''
+    user = g.user
 
     # 2 新闻点击排行展示
     news_clicks = []
@@ -34,6 +30,14 @@ def news_detial(news_id):
         current_app.logger.error(e)
     if not news:
         abort(404)
+
+    #4累计点击量
+    news.clicks +=1
+    try:
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+        db.session.rollback()
 
     context = {
         'user': user,
