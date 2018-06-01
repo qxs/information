@@ -12,7 +12,9 @@ def news_detial(news_id):
     '''1查询用户登录信息
     　　２点击排行
         3新闻查询详情
-        4累计点击量'''
+        4累计点击量
+        5收藏和取消收藏'''
+
     user = g.user
 
     # 2 新闻点击排行展示
@@ -39,10 +41,17 @@ def news_detial(news_id):
         current_app.logger.error(e)
         db.session.rollback()
 
+    #5收藏和取消收藏/该登录用户收藏了该新闻才显示灰色
+    is_collected = False
+    if user:
+        if news in user.collection_news:
+            is_collected = True
+
     context = {
         'user': user,
         'news_clicks': news_clicks,
-        'news':news.to_dict()
+        'news':news.to_dict(),
+        'is_collected':is_collected
     }
 
     return render_template('news/detail.html',context = context)
