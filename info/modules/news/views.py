@@ -13,6 +13,7 @@ def news_collect():
     user = g.user
     if not user:
         return jsonify(errno=response_code.RET.SESSIONERR,errmsg='用户未登录' )
+
     news_id = request.json.get('news_id')
     action =request.json.get('action')
 
@@ -31,8 +32,9 @@ def news_collect():
         return jsonify(errno=response_code.RET.PARAMERR, errmsg='缺少参数')
 
     if action == "collect":
+        if news not in user.collection_news:
         # 收藏新闻
-        user.collection_news.append(news)
+            user.collection_news.append(news)
     else:
         if news in user.collection_news:
             # 取消收藏新闻
