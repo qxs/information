@@ -7,7 +7,7 @@ from info import response_code
 
 
 '''点赞'''
-@news_blue.route('/comment_like')
+@news_blue.route('/comment_like',methods=['POST'])
 @user_login_data
 def comment_like():
     user = g.user
@@ -16,6 +16,7 @@ def comment_like():
 
     comment_id = request.json.get('comment_id')
     action = request.json.get('action')
+
     if not all([comment_id,action]):
         return jsonify(errno=response_code.RET.PARAMERR, errmsg='缺少参数')
     if action not in ['add','remove']:
@@ -23,14 +24,14 @@ def comment_like():
 
     #查询点赞的评论是否存在
     try:
-        comment = Comment.query.get('comment_id')
+        comment = Comment.query.get(comment_id)
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=response_code.RET.DBERR, errmsg='查询失败')
     if not comment:
-        return jsonify(errno=response_code.RET.NODATA, errmsg='新闻不存在')
+        return jsonify(errno=response_code.RET.NODATA, errmsg='评论不存在')
 
-    #查询要点赞的品论的赞是否存在，查询当前用户是否要给当前的评论点过赞
+    #查询要点赞的评论的赞是否存在，查询当前用户是否给当前的评论点过赞
     try:
         comment_like＿model = CommentLike.query.filter(CommentLike.user_id==user.id,CommentLike.comment_id==comment_id).first()
     except Exception as e:
