@@ -40,7 +40,7 @@ def base_info():
             current_app.logger.error(e)
             db.session.rollback()
             return jsonify(errno=response_code.RET.DBERR, errmsg='保存失败')
-
+        # 注意　：　修改了昵称之后，记得将状态保持中的昵称页修改
         session.nick_name = nick_name
 
     return jsonify(errno=response_code.RET.OK, errmsg='OK')

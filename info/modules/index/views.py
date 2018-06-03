@@ -41,7 +41,7 @@ def index_news_list():
     #读取当前是第几页，将来在主页的新闻列表上拉刷新时使用
     current_page =  paginate.page
 
-    #！！！！！将模型对象字典列表，让json在序列化时可以认识
+    #！！！！！将模型对象转成字典列表，让json在序列化时可以认识
     news_dict_list = []
     for news in news_list:
         news_dict_list.append(news.to_basic_dict())
