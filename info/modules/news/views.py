@@ -209,11 +209,34 @@ def news_detial(news_id):
     except Exception as e:
         current_app.logger.error(e)
 
+    # 7 展示评论点的赞
+        # 因为点赞在ｃｏｍｍｅｎｔ　ｄｉｖ里　所以把点赞渲染放在ｃｏｍｍｅｎｔ里面　而收藏只是俩个ａ标签独立的　所以放外面
+        # －－－－－－该登录用户给该评论点了赞－－－－－－－
+
+        # 1 查询该登录用户点赞了哪些评论       !!!查出的是一条记录，即对象　每条记录都是一个对象　 |||||下面是错误查询ｇｅｔ需要条件是字段是主键
+                                            # comment_id = CommentLike.query.get(user.id)
+    comment_like_ids = []
+    try:
+        comment_likes = CommentLike.query.filter(CommentLike.user_id == user.id).all()
+    # 2 取出所有被用户点赞的评论 id s
+        comment_like_ids = [ comment_like.comment_id for comment_like in comment_likes]
+    except Exception as e:
+        current_app.logger.error(e)
+
     #因为我希望界面渲染的数据，是经过处理的，所以我不使用模型原始的数据，而把每个模型类型转换成字典
     # commentｓ这个大的模型对象包括很多comment对象　所以转换成字典
     comment_dict_list = []
     for comment in comments:
         comment_dict = comment.to_dict()
+        # 给comment_dict 添加一个 is_like 用于记录该评论是否被该登录用户点赞了
+        # 14 ---[21,22]
+        # 15 ---[21,22]
+        # 21 ---[21,22]
+        # 22 ---[21,22]
+        comment_dict['is_like'] = False
+
+        if comment.id in comment_like_ids:
+            comment_dict['is_like'] = True
         comment_dict_list.append(comment_dict)
 
     context = {
