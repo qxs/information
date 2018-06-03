@@ -109,7 +109,8 @@ def news_detial(news_id):
     　　２点击排行
         3新闻查询详情
         4累计点击量
-        5收藏和取消收藏'''
+        5收藏和取消收藏
+        6 展示死用户评论'''
 
     user = g.user
 
@@ -143,11 +144,27 @@ def news_detial(news_id):
         if news in user.collection_news:
             is_collected = True
 
+    # 6
+    # 展示用户评论
+    comments = None
+    try:
+        comments = Comment.query.filter(Comment.news_id == news_id).order_by(Comment.create_time.desc()).all()
+    except Exception as e:
+        current_app.logger.error(e)
+
+    #因为我希望界面渲染的数据，是经过处理的，所以我不使用模型原始的数据，而把每个模型类型转换成字典
+    # commentｓ这个大的模型对象包括很多comment对象　所以转换成字典
+    comment_dict_list = []
+    for comment in comments:
+        comment_dict = comment.to_dict()
+        comment_dict_list.append(comment_dict)
+
     context = {
         'user': user,
         'news_clicks': news_clicks,
         'news':news.to_dict(),
-        'is_collected':is_collected
+        'is_collected':is_collected,
+        'comments':comment_dict_list
     }
 
     return render_template('news/detail.html',context = context)
