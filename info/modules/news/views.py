@@ -46,7 +46,7 @@ def news_comment():
         comment.parent_id = parent_id
 
     try:
-        db.session.add()
+        db.session.add(comment)
         db.session.commit()
     except Exception as e:
         current_app.logger.error(e)
