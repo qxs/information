@@ -125,6 +125,9 @@ $(function(){
                     $('.comment_sub').blur();
                     // 清空输入框内容
                     $(".comment_input").val("")
+
+                    //更新评论后条数
+                    updateCommentCount();
                 }else {
                     alert(resp.errmsg)
                 }
@@ -146,6 +149,7 @@ $(function(){
             $(this).parent().toggle();
         }
 
+        // TODO  :  点赞
         if(sHandler.indexOf('comment_up')>=0)
         {
             var $this = $(this);
@@ -220,7 +224,9 @@ $(function(){
                         // 请空输入框
                         $this.prev().val('')
                         // 关闭
-                        $this.parent().hide()
+                        $this.parent().hide();
+                        //更新评论后条数
+                        updateCommentCount();
                     }else {
                         alert(resp.errmsg)
                     }
@@ -239,3 +245,8 @@ $(function(){
 
     })
 })
+
+function updateCommentCount() {
+    var length = $(".comment_list").length
+    $(".comment_count").html(length + "条评论")
+}

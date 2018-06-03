@@ -1,12 +1,68 @@
 from . import news_blue
 from flask import render_template,session,current_app,abort,g,jsonify,request
-from info.models import News,User,constants,Category,db,Comment
+from info.models import News,User,constants,Category,db,Comment,CommentLike
 from info.utils.comment import user_login_data
 from info import response_code
 '''新闻详情：收藏,评论，点赞，'''
 
 
+'''点赞'''
+@news_blue.route('/comment_like')
+@user_login_data
+def comment_like():
+    user = g.user
+    if not user:
+        return jsonify(errno=response_code.RET.SESSIONERR, errmsg='用户未登录')
 
+    comment_id = request.json.get('comment_id')
+    action = request.json.get('action')
+    if not all([comment_id,action]):
+        return jsonify(errno=response_code.RET.PARAMERR, errmsg='缺少参数')
+    if action not in ['add','remove']:
+        return jsonify(errno=response_code.RET.PARAMERR, errmsg='参数错误')
+
+    #查询点赞的评论是否存在
+    try:
+        comment = Comment.query.get('comment_id')
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=response_code.RET.DBERR, errmsg='查询失败')
+    if not comment:
+        return jsonify(errno=response_code.RET.NODATA, errmsg='新闻不存在')
+
+    #查询要点赞的品论的赞是否存在，查询当前用户是否要给当前的评论点过赞
+    try:
+        comment_like＿model = CommentLike.query.filter(CommentLike.user_id==user.id,CommentLike.comment_id==comment_id).first()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=response_code.RET.DBERR, errmsg='查询点赞失败')
+
+    # !!! 点赞和取消点赞－－－－点赞前判断是否没有点赞没有再实现点赞｜｜｜｜｜｜取消点赞前判断是否点了赞　点了赞才能取消点赞
+    if action == 'add':
+        if not comment_like＿model:
+            comment_like＿model = CommentLike()
+            comment_like＿model.user_id = user.id
+            comment_like＿model.comment_id = comment_id
+            db.session.add(comment_like＿model)
+            # 累加点赞量
+            comment.like_count += 1
+
+    else:
+        if comment_like＿model:
+            db.session.delete(comment_like＿model)
+            # 累减点赞量
+            comment.like_count -= 1
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(e)
+        return jsonify(errno=response_code.RET.DBERR, errmsg='点赞失败')
+
+    return jsonify(errno=response_code.RET.OK, errmsg='点赞成功')
+
+'''评论'''
 @news_blue.route('/news_comment',methods=['POST'])
 @user_login_data
 def news_comment():
@@ -20,7 +76,7 @@ def news_comment():
 
     if not all([news_id,comment_content]):
         return jsonify(errno=response_code.RET.PARAMERR,errmsg='缺少参数' )
-    #ajax请求传来的ｎｅｗｓ　可能是字符串所以,,没用正则所以可能
+    #ajax请求传来的ｎｅｗｓ_id　可能是字符串所以,,没用正则所以可能
     # 校验parent_id 时注意可以有肯恩没有ｐａｒｅｎｔ＿ｉｄ
     try:
         news_id = int(news_id)
@@ -53,7 +109,7 @@ def news_comment():
         db.session.rollback()
         return jsonify(errno=response_code.RET.DBERR, errmsg='评论失败')
 
-    #注意点：评论完成需要把评论内容渲染出来．　所以return一个　data＝comment.todict(e　
+    #注意点：评论完成需要把评论内容渲染出来．　所以return一个　data＝comment.to_dict()　
     return jsonify(errno=response_code.RET.OK, errmsg='OK',data = comment.to_dict())
 
 
