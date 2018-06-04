@@ -7,6 +7,38 @@ from info.utils.file_storage import upload_file
 
 
 
+@user_blue.route('/pass_info',methods=['GET','POST'])
+@user_login_data
+def pass_info():
+    user = g.user
+    if not user:
+        return redirect(url_for('index.index'))
+
+    if request.method == 'GET':
+        return render_template('news/user_pass_info.html')
+
+    if request.method == 'POST':
+        old_password = request.json.get('old_password')
+        new_password = request.json.get('new_password')
+
+        if not all([old_password,new_password]):
+            return jsonify(errno=response_code.RET.PARAMERR, errmsg='缺少参数')
+        if not user.check_passowrd(old_password):
+            return jsonify(errno=response_code.RET.PARAMERR, errmsg='用户名或者密码错误')
+
+        #　更新密码
+        # 调用password属性方法 setter
+        user.password = new_password
+        try:
+            db.session.commit()
+        except Exception as e:
+            current_app.logger.error(e)
+            db.session.rollback()
+            return jsonify(errno=response_code.RET.DBERR, errmsg='密码保存失败')
+
+        return jsonify(errno=response_code.RET.OK, errmsg='密码保存成功')
+
+
 
 @user_blue.route('/pic_info',methods=['GET','POST'])
 @user_login_data
