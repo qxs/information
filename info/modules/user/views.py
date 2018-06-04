@@ -2,7 +2,60 @@
 from . import user_blue
 from  flask import render_template,g,current_app,jsonify,url_for,redirect,request,session
 from info.utils.comment import user_login_data
-from info import response_code,db
+from info import response_code,db,constants
+from info.utils.file_storage import upload_file
+
+
+
+
+@user_blue.route('/pic_info',methods=['GET','POST'])
+@user_login_data
+def pic_info():
+
+    user = g.user
+    if not user:
+        return redirect(url_for('index.index'))
+
+    if request.method == 'GET':
+        context = {
+            'user':user.to_dict()
+        }
+
+        return render_template('news/user_pic_info.html',context = context)
+
+    if request.method == 'POST':
+
+        avatar_file = request.files.get('avatar')
+        #校验参数
+        try:
+            avatar_data = avatar_file.read()
+        except Exception as e:
+            current_app.logger.error(e)
+            return jsonify(errno=response_code.RET.PARAMERR, errmsg='读取图像失败')
+
+         # 3 上传用户头像
+        try:
+            key = upload_file(avatar_data)
+        except Exception as e:
+            current_app.logger.error(e)
+            return jsonify(errno=response_code.RET.THIRDERR, errmsg='上传头像失败')
+
+        # ４ 保存用户头像的ｋｅｙ到数据库
+        user.avatar_url = key
+        try:
+            db.session.commit()
+        except Exception as e:
+            current_app.logger.error(e)
+            db.session.rollback()
+            return jsonify(errno=response_code.RET.DBERR, errmsg='保存失败')
+
+        data = {
+            'avatar_url':constants.QINIU_DOMIN_PREFIX+key
+        }
+
+        return jsonify(errno=response_code.RET.OK, errmsg='上传头像成功',data = data)
+
+
 
 
 @user_blue.route('/base_info',methods=['GET','POST'])
@@ -16,7 +69,7 @@ def base_info():
     #实现ｇｅｔ请求逻辑
     if request.method == 'GET':
         context = {
-            'user': user
+            'user': user.to_dict()
         }
         #渲染界面
         return render_template('news/user_base_info.html',context=context)
@@ -55,7 +108,7 @@ def user_info():
         return redirect(url_for('index.index'))
 
     context = {
-        'user':user
+        'user':user.to_dict()
     }
 
     return render_template('news/user.html',context=context)

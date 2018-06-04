@@ -81,14 +81,16 @@ def index():
 
     # 3 首页分类
     # 　ｃａｔｅｇｏｒｉｅｓ报黄警告
+
     categories = []
     try:
         categories = Category.query.all()
     except Exception as e:
         current_app.logger.error(e)
 
+
     context = {
-        'user':user,
+        'user':user.to_dict() if user else None,
         'news_clicks':news_clicks,
         'categories':categories
     }

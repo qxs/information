@@ -46,8 +46,8 @@ $(function () {
             if(!data_querying) {
                 // 表示正在加载刷新数据
                 data_querying　= true;
-                cur_page += 1;
                 if (cur_page < total_page){
+                    cur_page += 1;
                     updateNewsData();
                 }
             }
