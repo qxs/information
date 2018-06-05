@@ -143,9 +143,9 @@ def sms_code():
         return jsonify(error=response_code.RET.PARAMERR, errmsg='输入验证码错误')
     sms_code = '%06d' %random.randint(0,999999)
     current_app.logger.debug(sms_code)
-    # result = CCP().send_template_sms(mobile,[sms_code,5],1)
-    # if result != 0:
-    #     return jsonify(error=response_code.RET.THIRDERR, errmsg='发送验证码错误')
+    result = CCP().send_template_sms(mobile,[sms_code,5],1)
+    if result != 0:
+        return jsonify(error=response_code.RET.THIRDERR, errmsg='发送验证码错误')
 
     try:
         redis_store.set('SMS:'+mobile,sms_code,constants.SMS_CODE_REDIS_EXPIRES)
