@@ -13,9 +13,11 @@ def logout():
     清理ｓｅｓｓｉｏｎ　－－－－session.pop('key')
     """
     try:
-        session.pop('user_id')
-        session.pop('mobile')
-        session.pop('nick_name')
+        session.pop('user_id',None)
+        session.pop('mobile',None)
+        session.pop('nick_name',None)
+    #   为了防止管理员误入前台界面后，退出登录留下了＂ｉｓ＿ａｄｍｉｎ"私生子的标记，所以无论是谁只要退出登录，都要清理(ｉｓ＿ａｄｍｉｎ=True)
+        session.pop('is_admin',False)
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=response_code.RET.DBERR, errmsg='退出登录失败')

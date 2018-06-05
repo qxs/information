@@ -52,6 +52,8 @@ def create_app(config_name):
 
     # 开启CSRF保护：因为项目中的表单不再使用FlaskForm来实现，所以不会自动的开启CSRF保护，需要自己开启
     CSRFProtect(app)
+
+
     #使用请求钩子，实现数据存储在后端的位置
     @app.after_request
     def setup_csrftoken(response):

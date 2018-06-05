@@ -15,11 +15,9 @@
 	
 	<div class="side_bar">
 		<div class="user_info">
-            <img src={% if context.user.avatar_url %}
-                            {{ context.user.avatar_url }}
-                         {% else %}
-                            "../../static/admin/images/person.png"
-                         {% endif %} alt="{{ context.user.nick_name }}">
+            <img src={% if context.user.avatar_url %}{{ context.user.avatar_url }}
+                     {% else %}"../../static/admin/images/person.png"
+                     {% endif %} alt="{{ context.user.nick_name }}">
 			<p>欢迎你 <em>{{ context.user.nick_name }}</em></p>
 		</div>
 
