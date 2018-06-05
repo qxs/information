@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask,render_template,g
 from flask_sqlalchemy import SQLAlchemy
 from redis import StrictRedis
 from flask_wtf.csrf import CSRFProtect,generate_csrf
@@ -62,6 +62,17 @@ def create_app(config_name):
 
     from info.utils.comment import do_rank
     app.add_template_filter(do_rank,'rank')
+
+    from info.utils.comment import user_login_data
+    @app.errorhandler(404)
+    def page_not_found(e):
+        user=g.user
+        context = {
+            'user':user.to_dict()
+        }
+        return render_template('/news/404.html',context=context)
+
+
     # 指定session数据存储在后端的位置
     Session(app)
 

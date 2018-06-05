@@ -48,7 +48,6 @@ def user_news_list():
 
 
 
-
 @user_blue.route('/news_release',methods=['GET','POST'])
 @user_login_data
 def news_release():
