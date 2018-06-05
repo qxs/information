@@ -24,7 +24,7 @@ def admin_login():
             user = User.query.filter(User.nick_name == username).first()
         except Exception as e:
             current_app.logger.error(e)
-            return render_template('admin/login.html',errmsg='')
+            return render_template('admin/login.html',errmsg='查询用户名失败')
         if not user:
             return render_template('admin/login.html',errmsg='用户名或者密码错误')
 
