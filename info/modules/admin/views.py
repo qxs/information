@@ -1,11 +1,20 @@
 from . import admin_blue
-from flask import render_template,request,current_app,session,redirect,url_for
+from flask import render_template,request,current_app,session,redirect,url_for,g
 from info.models import User
+from info.utils.comment import user_login_data
 
 @admin_blue.route('/')
+@user_login_data
 def admin_index():
+    user = g.user
+    if not user:
+        return redirect(url_for('admin.admin_index'))
+    context ={
+        'user':user.to_dict()
+        # 'user':user.to_dict() if user else None 上面写了　if not user:判断　这里就不用写to_dict() if user else None
+    }
 
-    return render_template('admin/index.html')
+    return render_template('admin/index.html',context=context)
 
 
 @admin_blue.route('/login',methods = ['GET','POST'])
