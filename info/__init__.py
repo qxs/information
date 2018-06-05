@@ -68,7 +68,7 @@ def create_app(config_name):
     def page_not_found(e):
         user=g.user
         context = {
-            'user':user.to_dict()
+            'user':user.to_dict() if user else None
         }
         return render_template('/news/404.html',context=context)
 
