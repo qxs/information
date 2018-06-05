@@ -65,12 +65,13 @@ def create_app(config_name):
 
     from info.utils.comment import user_login_data
     @app.errorhandler(404)
+    @user_login_data
     def page_not_found(e):
-        user=g.user
+        user = g.user
         context = {
             'user':user.to_dict() if user else None
         }
-        return render_template('/news/404.html',context=context)
+        return render_template('news/404.html',context=context)
 
 
     # 指定session数据存储在后端的位置
@@ -85,5 +86,9 @@ def create_app(config_name):
     app.register_blueprint(news_blue)
     from info.modules.user import user_blue
     app.register_blueprint(user_blue)
+    from info.modules.admin import admin_blue
+    app.register_blueprint(admin_blue)
+
+
 
     return app
