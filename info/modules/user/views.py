@@ -8,6 +8,47 @@ from info.models import News,Category
 
 
 
+@user_blue.route('/news_list')
+@user_login_data
+def user_news_list():
+    user = g.user
+    if not user:
+        return redirect(url_for('index.index'))
+
+    page = request.args.get('p','1')
+    try:
+        page = int(page)
+    except Exception as e:
+        current_app.logger.error(e)
+        page = '1'
+
+    #　４　分页查询 　user.collection_news == BaseQuery类型的对象
+    paginate = None
+    try:
+        paginate = News.query.filter(News.user_id == user.id).paginate(page,constants.USER_COLLECTION_MAX_NEWS,False)
+    except Exception as e:
+        current_app.logger.error(e)
+
+    # 5 构造渲染模板的数据
+    news_list = paginate.items
+    total_page = paginate.pages
+    current_page = paginate.page
+
+    news_list_dict = []
+    for news in news_list:
+        news_list_dict.append(news.to_basic_dict())
+
+    context = {
+        'news_list_dict':news_list_dict,
+        'total_page':total_page,
+        'current_page':current_page
+    }
+
+    return render_template('news/user_news_list.html',context= context )
+
+
+
+
 @user_blue.route('/news_release',methods=['GET','POST'])
 @user_login_data
 def news_release():
