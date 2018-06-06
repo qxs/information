@@ -2,11 +2,41 @@ from . import admin_blue
 from flask import render_template,request,current_app,session,redirect,url_for,g
 from info.models import User
 from info.utils.comment import user_login_data
+import time,datetime
 
 
 @admin_blue.route('/user_count')
 def user_count():
-    return render_template('admin/user_count.html')
+    # 用户总数
+    total_count = 0
+    try:
+        total_count = User.query.filter(User.is_admin ==False).count()
+    except Exception as e:
+        current_app.logger.error(e)
+
+    month_count = 0
+    t =time.localtime()
+    month_begin = '%d-%02d-01' %(t.tm_year,t.tm_mon)
+    month_begin_date = datetime.datetime.strftime(month_begin,'%Y-%m-%d')
+    try:
+        month_count = User.query.filter(User.is_admin ==False,User.create_time>month_begin_date).count()
+    except Exception as e:
+        current_app.logger.error(e)
+
+    day_count = 0
+    t = time.localtime()
+    day_begin = '%d-%02d-%02d' % (t.tm_year, t.tm_mon,t.tm_day)
+    day_begin_date = datetime.datetime.strftime(day_begin, '%Y-%m-%d')
+    try:
+        day_count = User.query.filter(User.is_admin == False, User.create_time > day_begin_date).count()
+    except Exception as e:
+        current_app.logger.error(e)
+    context = {
+        'total_count':total_count,
+        'month_count':month_count,
+        'day_count':day_count
+    }
+    return render_template('admin/user_count.html',context=context)
 
 
 
