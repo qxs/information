@@ -6,6 +6,49 @@ from info import response_code
 '''新闻详情：收藏,评论，点赞，'''
 
 
+
+@news_blue.route('/followed_user',methods=['POST'])
+@user_login_data
+def followed_user():
+    login_user = g.user
+    if not login_user:
+        return jsonify(errno=response_code.RET.SESSIONERR, errmsg='用户未登录')
+
+    user_id = request.json.get('user_id')
+    action = request.json.get('action')
+    if not all([user_id, action]):
+        return jsonify(errno=response_code.RET.PARAMERR, errmsg='缺少参数')
+    if action not in ['follow', 'unfollow']:
+        return jsonify(errno=response_code.RET.PARAMERR, errmsg='参数错误')
+
+    try:
+        other = User.query.get(user_id)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=response_code.RET.DBERR, errmsg='查询失败')
+    if not other:
+        return jsonify(errno=response_code.RET.NODATA, errmsg='用户不存在')
+
+    if action == 'follow':
+        if other not in login_user.followed:
+            login_user.followed.append(other)
+        else:
+            return jsonify(errno=response_code.RET.DATAEXIST, errmsg='已经关注')
+    else:
+        if other in login_user.followed:
+            login_user.followed.remove(other)
+        else:
+            return jsonify(errno=response_code.RET.DATAEXIST, errmsg='未关注')
+    try:
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=response_code.RET.DBERR, errmsg='关注失败')
+
+    return jsonify(errno=response_code.RET.OK, errmsg='关注成功')
+
+
+
 '''点赞'''
 @news_blue.route('/comment_like',methods=['POST'])
 @user_login_data
