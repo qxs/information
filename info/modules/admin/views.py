@@ -17,7 +17,7 @@ def user_count():
     month_count = 0
     t =time.localtime()
     month_begin = '%d-%02d-01' %(t.tm_year,t.tm_mon)
-    month_begin_date = datetime.datetime.strftime(month_begin,'%Y-%m-%d')
+    month_begin_date = datetime.datetime.strptime(month_begin,'%Y-%m-%d')
     try:
         month_count = User.query.filter(User.is_admin ==False,User.create_time>month_begin_date).count()
     except Exception as e:
@@ -25,8 +25,8 @@ def user_count():
 
     day_count = 0
     t = time.localtime()
-    day_begin = '%d-%02d-%02d' % (t.tm_year, t.tm_mon,t.tm_day)
-    day_begin_date = datetime.datetime.strftime(day_begin, '%Y-%m-%d')
+    day_begin = '%d-%02d-%02d' % (t.tm_year, t.tm_mon,t.tm_mday)
+    day_begin_date = datetime.datetime.strptime(day_begin, '%Y-%m-%d')
     try:
         day_count = User.query.filter(User.is_admin == False, User.create_time > day_begin_date).count()
     except Exception as e:
