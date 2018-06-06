@@ -167,7 +167,8 @@ def news_detial(news_id):
         3新闻查询详情
         4累计点击量
         5收藏和取消收藏
-        6 展示死用户评论'''
+        6 展示死用户评论
+        ７关注与取消关注'''
 
     user = g.user
 
@@ -239,12 +240,22 @@ def news_detial(news_id):
             comment_dict['is_like'] = True
         comment_dict_list.append(comment_dict)
 
+    # ７关注与取消关注
+    is_followed = False
+    # 用户要登陆且用户看的新闻新闻有作者：
+    # user 登录用户　　news,user 作者
+    # user.followed 登录用户所关注的人
+    if user and News.user:
+        if news.user in user.followed:
+            is_followed = True
+
     context = {
         'user': user.to_dict() if user else None,
         'news_clicks': news_clicks,
         'news':news.to_dict(),
         'is_collected':is_collected,
-        'comments':comment_dict_list
+        'comments':comment_dict_list,
+        'is_followed':is_followed
     }
 
     return render_template('news/detail.html',context = context)
