@@ -1,9 +1,49 @@
 from . import admin_blue
 from flask import render_template,request,current_app,session,redirect,url_for,g,abort
-from info.models import User
+from info.models import User,News
 from info.utils.comment import user_login_data
 import time,datetime
 from info import constants
+
+
+
+@admin_blue.route('/news_review')
+@user_login_data
+def news_review():
+    user = g.user
+    if not user:
+        return redirect(url_for('admin.admin_login'))
+
+    page = request.args.get('p','1')
+    try:
+        page = int(page)
+    except Exception as e:
+        current_app.logger.error(3)
+        page = '1'
+
+    paginate = []
+    users = []
+    total_page = 1
+    current_page =1
+    try:
+        paginate = News.query.filter(News.status!=0).paginate(page,constants.ADMIN_USER_PAGE_MAX_COUNT,False)
+        news = paginate.items
+        total_page = paginate.pages
+        current_page = paginate.page
+    except Exception as e:
+        current_app.logger.error(e)
+        abort(404)
+
+    news_list_dict = []
+    for new in news:
+        news_list_dict.append(new.to_review_dict())
+
+    context = {
+        'news_list':news_list_dict,
+        'total_page':total_page,
+        'current_page':current_page
+    }
+    return render_template('admin/news_review.html',context=context)
 
 
 @admin_blue.route('/user_list')
