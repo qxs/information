@@ -160,6 +160,7 @@ class News(BaseModel, db.Model):
             "clicks": self.clicks,
             "category": self.category.to_dict(),
             "index_image_url": self.index_image_url,
+            'category_id':self.category_id,
             "author": self.user.to_dict() if self.user else None
         }
         return resp_dict
