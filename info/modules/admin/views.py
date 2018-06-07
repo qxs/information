@@ -7,6 +7,9 @@ from info import constants
 
 
 
+
+
+
 @admin_blue.route('/news_review')
 @user_login_data
 def news_review():
@@ -15,6 +18,8 @@ def news_review():
         return redirect(url_for('admin.admin_login'))
 
     page = request.args.get('p','1')
+    keyword = request.args.get('keyword')
+
     try:
         page = int(page)
     except Exception as e:
@@ -26,7 +31,10 @@ def news_review():
     total_page = 1
     current_page =1
     try:
-        paginate = News.query.filter(News.status!=0).paginate(page,constants.ADMIN_USER_PAGE_MAX_COUNT,False)
+        if keyword:
+            paginate = News.query.filter(News.status != 0,News.title.contains(keyword)).paginate(page, constants.ADMIN_USER_PAGE_MAX_COUNT, False)
+        else:
+            paginate = News.query.filter(News.status!=0).paginate(page,constants.ADMIN_USER_PAGE_MAX_COUNT,False)
         news = paginate.items
         total_page = paginate.pages
         current_page = paginate.page
@@ -49,7 +57,7 @@ def news_review():
 @admin_blue.route('/user_list')
 @user_login_data
 def user_list():
-    user = g.userK
+    user = g.user
     if not user:
         return redirect(url_for('admin.admin_login'))
 
