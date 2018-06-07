@@ -28,9 +28,9 @@ def index_news_list():
 
     if(cid == 1):
         #最新，时间倒序，每页１０条数据
-        paginate = News.query.order_by(News.create_time.desc()).paginate(page,per_page,False)
+        paginate = News.query.filter(News.status==0).order_by(News.create_time.desc()).paginate(page,per_page,False)
     else:
-        paginate = News.query.filter(News.category_id==cid).order_by(News.create_time.desc()).paginate(page,per_page,False)
+        paginate = News.query.filter(News.status==0,News.category_id==cid).order_by(News.create_time.desc()).paginate(page,per_page,False)
 
     # 4 构造响应的新闻列表数据
         #news_list = [News,News,News,News,News,News,News,News,News,News]   其中News是一个对象

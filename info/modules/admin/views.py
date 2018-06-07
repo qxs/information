@@ -1,8 +1,50 @@
 from . import admin_blue
-from flask import render_template,request,current_app,session,redirect,url_for,g
+from flask import render_template,request,current_app,session,redirect,url_for,g,abort
 from info.models import User
 from info.utils.comment import user_login_data
 import time,datetime
+from info import constants
+
+
+@admin_blue.route('/user_list')
+@user_login_data
+def user_list():
+    user = g.userK
+    if not user:
+        return redirect(url_for('admin.admin_login'))
+
+    page = request.args.get('p','1')
+    try:
+        page = int(page)
+    except Exception as e:
+        current_app.logger.error(3)
+        page = '1'
+
+    paginate = []
+    users = []
+    total_page = 1
+    current_page =1
+    try:
+        paginate = User.query.filter(User.is_admin==False).paginate(page,constants.ADMIN_USER_PAGE_MAX_COUNT,False)
+        users = paginate.items
+        total_page = paginate.pages
+        current_page = paginate.page
+    except Exception as e:
+        current_app.logger.error(e)
+        abort(404)
+
+    user_list_dict = []
+    for user in users:
+        user_list_dict.append(user.to_admin_dict())
+
+    context = {
+        'users':user_list_dict,
+        'total_page':total_page,
+        'current_page':current_page
+    }
+
+    return render_template('admin/user_list.html',context=context)
+
 
 
 @admin_blue.route('/user_count')
