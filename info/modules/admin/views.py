@@ -6,6 +6,22 @@ import time,datetime
 from info import constants
 
 
+@admin_blue.route('/news_review_detial/<int:news_id>')
+def news_review_detial(news_id):
+
+    news = None
+    try:
+        news = News.query.get(news_id)
+    except Exception as e:
+        current_app.logger.error(e)
+        abort(404)
+    if not news:
+        abort(404)
+    context = {
+        'news':news
+    }
+
+    return render_template('admin/news_review_detail.html',context=context)
 
 
 
