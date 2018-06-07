@@ -5,6 +5,47 @@ from info.utils.comment import user_login_data
 import time,datetime
 from info import constants,response_code,db
 
+
+@admin_blue.route('/news_edit')
+def news_edit():
+    page = request.args.get('p', '1')
+    keyword = request.args.get('keyword')
+
+    try:
+        page = int(page)
+    except Exception as e:
+        current_app.logger.error(3)
+        page = '1'
+
+    paginate = []
+    total_page = 1
+    current_page = 1
+    try:
+        if keyword:
+            paginate = News.query.filter(News.status ==0, News.title.contains(keyword)).paginate(page,
+                                                                                                  constants.ADMIN_USER_PAGE_MAX_COUNT,
+                                                                                                  False)
+        else:
+            paginate = News.query.filter(News.status == 0).paginate(page, constants.ADMIN_USER_PAGE_MAX_COUNT, False)
+        news = paginate.items
+        total_page = paginate.pages
+        current_page = paginate.page
+    except Exception as e:
+        current_app.logger.error(e)
+        abort(404)
+
+    news_list_dict = []
+    for new in news:
+        news_list_dict.append(new.to_basic_dict())
+
+    context = {
+        'news_list': news_list_dict,
+        'total_page': total_page,
+        'current_page': current_page
+    }
+    return render_template('admin/news_edit.html', context=context)
+
+
 @admin_blue.route('/news_review_action',methods=['POST'])
 def news_review_action():
     news_id = request.json.get('news_id')
@@ -41,6 +82,7 @@ def news_review_action():
 
     return jsonify(errno=response_code.RET.OK, errmsg='OK')
 
+
 @admin_blue.route('/news_review_detial/<int:news_id>')
 def news_review_detial(news_id):
 
@@ -60,12 +102,7 @@ def news_review_detial(news_id):
 
 
 @admin_blue.route('/news_review')
-@user_login_data
 def news_review():
-    user = g.user
-    if not user:
-        return redirect(url_for('admin.admin_login'))
-
     page = request.args.get('p','1')
     keyword = request.args.get('keyword')
 
