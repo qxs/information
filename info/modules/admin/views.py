@@ -1,10 +1,45 @@
 from . import admin_blue
-from flask import render_template,request,current_app,session,redirect,url_for,g,abort
+from flask import render_template,request,current_app,session,redirect,url_for,g,abort,jsonify
 from info.models import User,News
 from info.utils.comment import user_login_data
 import time,datetime
-from info import constants
+from info import constants,response_code,db
 
+@admin_blue.route('/news_review_action',methods=['POST'])
+def news_review_action():
+    news_id = request.json.get('news_id')
+    action = request.json.get('action')
+
+    if not all([news_id,action]):
+        return jsonify(errno=response_code.RET.PARAMERR, errmsg='缺少参数')
+    if action not in ['accept','reject']:
+        return jsonify(errno=response_code.RET.PARAMERR, errmsg='参数错误')
+
+    news = None
+    try:
+        news = News.query.get(news_id)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=response_code.RET.DBERR, errmsg='新闻查询失败')
+
+    if not news:
+            return jsonify(errno=response_code.RET.NODATA, errmsg='新闻不存在')
+
+    if action == 'accept':
+        news.status = 0
+    else:
+        news.status =-1
+        reason = request.json.get('reason')
+        if not reason:
+            return jsonify(errno=response_code.RET.PARAMERR, errmsg="缺少原因")
+        news.reason = reason
+    try:
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=response_code.RET.DBERR, errmsg="通过失败")
+
+    return jsonify(errno=response_code.RET.OK, errmsg='OK')
 
 @admin_blue.route('/news_review_detial/<int:news_id>')
 def news_review_detial(news_id):
@@ -22,8 +57,6 @@ def news_review_detial(news_id):
     }
 
     return render_template('admin/news_review_detail.html',context=context)
-
-
 
 
 @admin_blue.route('/news_review')
