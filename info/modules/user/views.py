@@ -4,7 +4,33 @@ from  flask import render_template,g,current_app,jsonify,url_for,redirect,reques
 from info.utils.comment import user_login_data
 from info import response_code,db,constants
 from info.utils.file_storage import upload_file
-from info.models import News,Category
+from info.models import News,Category,User
+
+
+@user_blue.route('/other_info')
+@user_login_data
+def other_info():
+    login_user = g.user
+    if not login_user:
+        return redirect(url_for('index.index'))
+
+    user_id = request.args.get('user_id')
+    other = None
+    try:
+        other = User.query.get(user_id)
+    except Exception as e:
+        current_app.logger.error(e)
+        abort(404)
+    if not other:
+            abort(404)
+
+    context = {
+        'user':login_user.to_dict(),
+        'other':other.to_dict()
+
+    }
+
+    return render_template('news/other.html',context=context)
 
 
 
