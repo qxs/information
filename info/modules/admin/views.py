@@ -8,6 +8,58 @@ from info.utils.file_storage import upload_file
 
 
 
+@admin_blue.route('/news_type',methods=['GET','POST'])
+def news_type():
+    if request.method == "GET":
+        categories = []
+        try:
+            categories = Category.query.all()
+            categories.pop(0)
+        except Exception as e:
+            current_app.logger.error(e)
+            abort(404)
+
+        return render_template('admin/news_type.html',categories=categories)
+
+    if request.method == 'POST':
+        cname = request.json.get('name')
+        cid = request.json.get('id')
+
+        if not cname:
+            return jsonify(errno=response_code.RET.PARAMERR, errmsg="缺少参数")
+        #如果有修改分类，否则新增分类
+        if cid:
+            try:
+                cid = int(cid)
+            except Exception as e:
+                current_app.logger.error(e)
+                return jsonify(errno=response_code.RET.PARAMERR, errmsg="参数有误")
+
+            try:
+                category = Category.query.get(cid)
+            except Exception as e:
+                current_app.logger.error(e)
+                return jsonify(errno=response_code.RET.DBERR, errmsg="查询新闻分类失败")
+            if not category:
+                return jsonify(errno=response_code.RET.NODATA, errmsg="分类不存在")
+
+            category.name = cname
+
+        else:
+            category = Category()
+            category.name = cname
+            db.session.add(category)
+
+        try:
+            db.session.commit()
+        except Exception as e:
+            current_app.logger.error(e)
+            db.session.rollback()
+            return jsonify(errno=response_code.RET.DBERR, errmsg="查询新闻分类失败")
+
+        return jsonify(errno=response_code.RET.OK, errmsg="OK")
+
+
 @admin_blue.route('/news_edit_detail/<int:news_id>',methods=['GET','POST'])
 def news_edit_detail(news_id):
 
