@@ -1,11 +1,52 @@
 '''个人中心'''
 from . import user_blue
-from  flask import render_template,g,current_app,jsonify,url_for,redirect,request,session
+from  flask import render_template,g,current_app,jsonify,url_for,redirect,request,session,abort
 from info.utils.comment import user_login_data
 from info import response_code,db,constants
 from info.utils.file_storage import upload_file
 from info.models import News,Category
 
+
+
+@user_blue.route('/user_follow')
+@user_login_data
+def user_follow():
+    user = g.user
+    if not user:
+        return redirect(url_for('index.index'))
+
+    #paginate 会自动识别　'1' 和　１如果是字符串'1',pagnate会把字符串转换成数字１，字符串＇１＇容错率大
+    page = request.args.get('p','1')
+    try:
+        page = int(page)
+    except Exception as e:
+        current_app.logger.error(e)
+        page = '1'
+
+    #查询登录用户的关注的用户
+    user_follow = []
+    total_page = 1
+    current_page = 1
+    try:
+        paginate = user.followed.paginate(page,constants.USER_FOLLOWED_MAX_COUNT,False)
+        user_follow = paginate.items
+        total_page = paginate.pages
+        current_page = paginate.page
+    except Exception as e:
+        current_app.logger.error(e)
+        abort(404)
+
+    user_follow_list = []
+    for user in user_follow:
+        user_follow_list.append(user.to_dict())
+
+    context = {
+        'users':user_follow_list,
+        'total_page':total_page,
+        'current_page':current_page
+    }
+
+    return render_template('news/user_follow.html',context=context)
 
 
 @user_blue.route('/news_list')
