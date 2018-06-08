@@ -4,31 +4,85 @@ from info.models import User,News,Category
 from info.utils.comment import user_login_data
 import time,datetime
 from info import constants,response_code,db
+from info.utils.file_storage import upload_file
 
-@admin_blue.route('news_edit_detail/<int:news_id>')
+
+
+@admin_blue.route('/news_edit_detail/<int:news_id>',methods=['GET','POST'])
 def news_edit_detail(news_id):
-    news = None
-    try:
-        news = News.query.get(news_id)
-    except Exception as e:
-        current_app.logger.error(e)
-        abort(404)
-    if not news:
-        abort(404)
 
-    categories = []
-    try:
-        categories = Category.query.all()
-    except Exception as e:
-        abort(404)
-    categories.pop(0)
+    if request.method=='GET':
+        news = None
+        try:
+            news = News.query.get(news_id)
+        except Exception as e:
+            current_app.logger.error(e)
+            abort(404)
+        if not news:
+            abort(404)
 
-    context = {
-        'news': news.to_dict(),
-        'categories':categories
-    }
+        categories = []
+        try:
+            categories = Category.query.all()
+        except Exception as e:
+            abort(404)
+        categories.pop(0)
 
-    return render_template('admin/news_edit_detail.html',context=context)
+        context = {
+            'news': news.to_dict(),
+            'categories':categories
+        }
+
+        return render_template('admin/news_edit_detail.html',context=context)
+
+    if request.method=="POST":
+        # news_id = request.form.get("news_id")
+        title = request.form.get("title")
+        digest = request.form.get("digest")
+        content = request.form.get("content")
+        index_image = request.files.get("index_image")
+        category_id = request.form.get("category_id")
+
+        if not all([title, digest, content, category_id]):
+            return jsonify(errno=response_code.RET.PARAMERR, errmsg="参数有误")
+
+        news = None
+        try:
+            news = News.query.get(news_id)
+        except Exception as e:
+            current_app.logger.error(e)
+            return jsonify(errno=response_code.RET.DBERR, errmsg="查询新闻失败")
+        if not news:
+            return jsonify(errno=response_code.RET.NODATA, errmsg="新闻不存在")
+
+        if index_image:
+            try:
+                index_image_data = index_image.read()
+            except Exception as e:
+                current_app.logger.error(e)
+                return jsonify(errno=response_code.RET.PARAMERR, errmsg="参数有误")
+            try:
+                key = upload_file(index_image_data)
+            except Exception as e:
+                current_app.logger.error(e)
+                return jsonify(errno=response_code.RET.THIRDERR, errmsg="图片上传失败")
+
+            # 3. 设置相关数据
+        news.title = title
+        news.digest = digest
+        news.content = content
+        news.category_id = category_id
+
+        # 4. 保存到数据库
+        try:
+            db.session.commit()
+        except Exception as e:
+            current_app.logger.error(e)
+            db.session.rollback()
+            return jsonify(errno=response_code.RET.DBERR, errmsg="保存数据失败")
+        # 5. 返回结果
+        return jsonify(errno=response_code.RET.OK, errmsg="编辑成功")
+
 
 
 @admin_blue.route('/news_edit')
