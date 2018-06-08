@@ -7,6 +7,50 @@ from info.utils.file_storage import upload_file
 from info.models import News,Category,User
 
 
+@user_blue.route('/other_news_list')
+def other_news_list():
+    page = request.args.get('p','1')
+    other_id = request.args.get('user_id')
+    try:
+        page = int(page)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=response_code.RET.PARAMERR, errmsg='参数错误')
+
+    if not all([page,other_id]):
+        return jsonify(errno=response_code.RET.PARAMERR, errmsg='缺少参数')
+
+    try:
+        user = User.query.get(other_id)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=response_code.RET.DBERR, errmsg='查询用户失败')
+    if not user:
+        return jsonify(errno=response_code.RET.NODATA, errmsg='用户不存在')
+
+    #　４　分页查询 　user.collection_news == BaseQuery类型的对象
+    try:
+        paginate = News.query.filter(News.user_id == user.id,News.status==0).paginate(page,constants.USER_COLLECTION_MAX_NEWS,False)
+        news_list = paginate.items
+        total_page = paginate.pages
+        current_page = paginate.page
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=response_code.RET.DBERR, errmsg='查询新闻失败')
+
+    news_list_dict = []
+    for news in news_list:
+        news_list_dict.append(news.to_review_dict())
+
+    data = {
+        'news_list':news_list_dict,
+        'total_page':total_page,
+        'current_page':current_page
+    }
+
+    return jsonify(errno=response_code.RET.OK, errmsg='OK',data=data)
+
+
 @user_blue.route('/other_info')
 @user_login_data
 def other_info():

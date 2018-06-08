@@ -25,5 +25,29 @@ $(function(){
 
 // TODO 获取新闻列表
 function getNewsList(page) {
+    // http://127.0.0.1:5000/user/other_info?user_id=1
+    var query = decodeQuery()
+    //解析当前地址求出ｕｒｌ－－－－user_id=1
+    var params = {
+        "p": page,
+        "user_id": query["user_id"]
+    }
+    $.get("/user/other_news_list", params, function (resp) {
+        if (resp.errno == "0") {
+            // 先清空原有的数据
+            $(".article_list").html("");
+            // 拼接数据
+            for (var i = 0; i<resp.data.news_list.length; i++) {
+                var news = resp.data.news_list[i];
+                var html = '<li><a href="/news/'+ news.id +'" target="_blank">' + news.title + '</a><span>' + news.create_time + '</span></li>'
+                // 添加数据
+                $(".article_list").append(html)
+            }
+            // 设置页数和总页数
+            $("#pagination").pagination("setPage", resp.data.current_page, resp.data.total_page);
+        }else {
+            alert(resp.errmsg)
+        }
+    })
 
 }
