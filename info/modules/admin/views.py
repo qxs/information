@@ -338,10 +338,38 @@ def user_count():
         day_count = User.query.filter(User.is_admin == False, User.create_time > day_begin_date).count()
     except Exception as e:
         current_app.logger.error(e)
+    # ｙ轴登录量的节点
+    active_date = []
+    # ｘ轴的时间节点
+    active_count = []
+
+    today_begin = '%d-%02d-%02d' % (t.tm_year, t.tm_mon, t.tm_mday)
+    today_begin_date = datetime.datetime.strptime(day_begin, '%Y-%m-%d')
+    for i in range(0,15):
+        # 计算一天开始
+        begin_data = today_begin_date - datetime.timedelta(days=i)
+        # 计算一天结束
+        end_data = today_begin_date - datetime.timedelta(days=(i-1))
+        # 将ｘ轴对应的开始时间记录
+        # strftime:将时间对象转换成时间字符串
+        active_date.append(datetime.datetime.strftime(begin_data,'%Y-%m-%d'))
+
+        #查询当天的一户登录量
+        try:
+            count = User.query.filter(User.is_admin == False, User.last_login >= begin_data,User.last_login<end_data).count()
+            active_count.append(count)
+        except Exception as e:
+            current_app.logger.error(e)
+
+    active_count.reverse()
+    active_date.reverse()
+
     context = {
         'total_count':total_count,
         'month_count':month_count,
-        'day_count':day_count
+        'day_count':day_count,
+        'active_date':active_date,
+        'active_count':active_count
     }
     return render_template('admin/user_count.html',context=context)
 
